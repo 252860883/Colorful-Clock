@@ -1,7 +1,7 @@
 var r=6;
 var windowWidth=1000;
-var windowHeight=600;
-var balls=[];
+var windowHeight=window.innerHeight;
+var balls=[];//存放小球球的数组
 var curshowTime;
 
 window.onload=function(){
@@ -11,16 +11,16 @@ window.onload=function(){
     canvas.height=windowHeight;
     var context=canvas.getContext('2d');
 
-    setInterval(
-        function(){
-            context.clearRect(0,0,windowWidth,windowHeight);
-            update();
-            render(context);
-        },50);
+    var start=function (){
+        context.clearRect(0,0,windowWidth,windowHeight);
+        update();
+        render(context);
 
+        /*优化了setInterval事件，改写为 requestAnimationFrame 事件*/
+        requestAnimationFrame(start);
+    };
+    start();
 };
-
-//
 
 function render(context){
     var date=new Date();
@@ -39,9 +39,6 @@ function render(context){
 
     for(var i=0;i<balls.length;i++){
         var fillColor=['#FFC1C1','#FF6EB4','#FF3E96','#FF69B4','#FFE4E1','#FF00FF','#FF4040','#F08080'];
-
-
-
         context.beginPath();
         context.arc(balls[i].x,balls[i].y,r,0,Math.PI*2);
         context.closePath();
@@ -88,7 +85,6 @@ function update(context){
         }
     }
     updateBalls(context);
-
 }
 
 //在时间更新以后，动态添加小球
@@ -98,6 +94,8 @@ function addBalls(x,y,num){
         for(var j=0;j<digit[num][i].length;j++){
             if(digit[num][i][j]==1){
                 var aball={
+
+                    //zheli
                     x:x+j*2*(r+1)+(r+1),
                     y:y+i*2*(r+1)+(r+1),
                     g:1.5+Math.random(),
@@ -115,6 +113,10 @@ function addBalls(x,y,num){
 function updateBalls(context){
     for(var i=0;i<balls.length;i++)
     {
+        //垃圾回收优化，移除视野的小球清空
+        if (balls[i].x<=100 || balls[i].x>=windowWidth){
+            balls[i]="";
+        }
         balls[i].x=balls[i].x+balls[i].vx;
         balls[i].y=balls[i].y+balls[i].vy;
         balls[i].vy=balls[i].vy+balls[i].g;
@@ -122,8 +124,6 @@ function updateBalls(context){
         if(balls[i].y>=windowHeight-r){
             balls[i].y=windowHeight;
             balls[i].vy=-balls[i].vy*0.45;
-            //context.clearRect(0,windowHeight,10,20);
-
         }
     }
 }
